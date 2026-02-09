@@ -1,0 +1,8 @@
+Django>=5.0
+django-environ
+django-crispy-forms
+crispy-bootstrap5
+djangorestframework
+whitenoise
+psycopg2-binary  # In case the user wants to use Postgres later, but we'll start with SQLite
+gunicorn

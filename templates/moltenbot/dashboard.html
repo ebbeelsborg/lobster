@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load molten_tags %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+  <div class="col">
+    <h1 class="h2 fw-bold"><i class="bi bi-grid-3x3-gap me-2"></i>Unit Dashboard</h1>
+    <p class="text-muted">Total Active Units: {{ bots.count }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{% url 'bot_create' %}" class="btn molten-btn px-4">
+      <i class="bi bi-plus-circle me-1"></i> New Moltenbot
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-5">
+  {% for bot in bots %}
+  <div class="col-md-4">
+    <div class="card molten-card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="card-title fw-bold mb-0">{{ bot.name }}</h5>
+          <small class="text-muted">{{ bot.organization.name }}</small>
+        </div>
+        <span
+          class="badge {% if bot.status == 'running' %}bg-success{% elif bot.status == 'overheated' %}bg-danger{% else %}bg-secondary{% endif %}">
+          {{ bot.get_status_display }}
+        </span>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1">
+          <span>Core Temp</span>
+          <span style="color: {{ bot.temperature|heat_color }}; font-weight: bold;">{{ bot.temperature }}°C</span>
+        </div>
+        <div class="temp-bar">
+          <div class="h-100" {{ bot.temperature|heat_gradient }}></div>
+        </div>
+      </div>
+
+      <p class="card-text text-muted small flex-grow-1">
+        {{ bot.description|truncatechars:100 }}
+      </p>
+
+      <div class="mt-3">
+        <a href="{% url 'bot_detail' bot.pk %}" class="btn btn-outline-warning btn-sm w-100">
+          <i class="bi bi-cpu me-1"></i> Manage Unit
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5">
+    <div class="glass-panel p-5">
+      <i class="bi bi-robot display-1 text-muted mb-3"></i>
+      <h3>No Moltenbots Found</h3>
+      <p class="text-muted">Initialize your first unit to get started.</p>
+      <a href="{% url 'bot_create' %}" class="btn molten-btn mt-3">Deploy First Bot</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <h3 class="h4 mb-4"><i class="bi bi-activity me-2"></i>Global Execution Feed</h3>
+    <div class="glass-panel p-3">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Unit</th>
+              <th>Task</th>
+              <th>Status</th>
+              <th>Started</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for execution in recent_executions %}
+            <tr>
+              <td class="text-muted small">{{ execution.id|stringformat:".8s" }}...</td>
+              <td>{{ execution.bot_version.bot.name }}</td>
+              <td>{{ execution.task.name }}</td>
+              <td>
+                <span
+                  class="badge {% if execution.status == 'success' %}bg-success{% elif execution.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                  {{ execution.get_status_display }}
+                </span>
+              </td>
+              <td>{{ execution.started_at|timesince }} ago</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No recent activity detected.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

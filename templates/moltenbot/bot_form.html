@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="glass-panel p-4">
+      <h2 class="fw-bold mb-4"><i class="bi bi-cpu-fill me-2 text-warning"></i>Deploy New Unit</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="mt-4">
+          <button type="submit" class="btn molten-btn w-100 py-2">
+            Initialize Core
+          </button>
+          <a href="{% url 'dashboard' %}" class="btn btn-link w-100 text-muted mt-2">
+            Cancel Deployment
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

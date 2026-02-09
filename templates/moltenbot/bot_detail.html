@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load molten_tags %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-warning">Dashboard</a></li>
+    <li class="breadcrumb-item active text-muted" aria-current="page">{{ bot.name }}</li>
+  </ol>
+</nav>
+
+<div class="row mb-5">
+  <div class="col-lg-8">
+    <div class="glass-panel p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold mb-0">{{ bot.name }}</h1>
+        <span
+          class="badge fs-6 {% if bot.status == 'running' %}bg-success{% elif bot.status == 'overheated' %}bg-danger{% else %}bg-secondary{% endif %}">
+          {{ bot.get_status_display }}
+        </span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-6 text-center border-end border-secondary">
+          <p class="text-muted small text-uppercase mb-1">Current Temperature</p>
+          <h2 class="display-5 fw-bold" style="color: {{ bot.temperature|heat_color }};">
+            {{ bot.temperature }}°C
+          </h2>
+        </div>
+        <div class="col-md-6 text-center">
+          <p class="text-muted small text-uppercase mb-1">Operational Health</p>
+          {% if bot.is_overheating %}
+          <h2 class="display-5 fw-bold text-danger">CRITICAL</h2>
+          {% else %}
+          <h2 class="display-5 fw-bold text-success">OPTIMAL</h2>
+          {% endif %}
+        </div>
+      </div>
+
+      <h5 class="fw-bold mb-3">Specifications</h5>
+      <p class="text-muted">{{ bot.description|default:"No description provided for this unit." }}</p>
+
+      <div class="mt-4 p-3 border border-secondary rounded">
+        <p class="small mb-1 text-muted">Organization</p>
+        <p class="mb-0 fw-bold">{{ bot.organization.name }}</p>
+      </div>
+    </div>
+
+    <h4 class="fw-bold mb-4"><i class="bi bi-terminal me-2"></i>Unit Logs</h4>
+    <div class="glass-panel p-3 bg-black"
+      style="font-family: 'Courier New', monospace; height: 300px; overflow-y: auto;">
+      {% for log in logs %}
+      <div class="mb-1 small">
+        <span class="text-muted">[{{ log.timestamp|date:"H:i:s" }}]</span>
+        <span
+          class="{% if log.level == 'error' or log.level == 'molten' %}text-danger fw-bold{% elif log.level == 'warning' %}text-warning{% else %}text-info{% endif %}">
+          {{ log.get_level_display }}
+        </span>
+        <span class="ms-2">{{ log.message }}</span>
+      </div>
+      {% empty %}
+      <p class="text-muted italic">No telemetry data available.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="glass-panel p-4 mb-4">
+      <h5 class="fw-bold mb-4">Execution Controls</h5>
+      <button class="btn molten-btn w-100 mb-3" {% if bot.status=='overheated' %}disabled{% endif %}>
+        <i class="bi bi-play-fill me-1"></i> Initiate Task
+      </button>
+      <button class="btn btn-outline-danger w-100">
+        <i class="bi bi-power me-1"></i> Emergency Shutdown
+      </button>
+    </div>
+
+    <div class="glass-panel p-4">
+      <h5 class="fw-bold mb-4">Recent Executions</h5>
+      {% for exec in executions %}
+      <div class="mb-3 pb-3 border-bottom border-secondary">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small fw-bold text-truncate" style="max-width: 150px;">{{ exec.task.name }}</span>
+          <span
+            class="badge small {% if exec.status == 'success' %}bg-success{% elif exec.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+            {{ exec.status }}
+          </span>
+        </div>
+        <small class="text-muted">{{ exec.started_at|date:"M j, H:i" }}</small>
+      </div>
+      {% empty %}
+      <p class="text-muted small">No execution history found.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
